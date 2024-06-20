@@ -1,0 +1,237 @@
+document.addEventListener('DOMContentLoaded', () => {
+  const addCategoryButton = document.getElementById('addCategoryButton');
+  const addProductButton = document.getElementById('addProductButton');
+  const productSection = document.getElementById('productSection');
+  const copywritingFields = document.getElementById('copywritingFields');
+  const addCopywritingFieldButton = document.getElementById('addCopywritingFieldButton');
+  const newCategorySection = document.getElementById('newCategorySection');
+  const closeModalButton = document.getElementById('closeModalButton');
+  const copyModalButton = document.getElementById('copyModalButton');
+
+  addCategoryButton.addEventListener('click', addCategory);
+  addProductButton.addEventListener('click', addProduct);
+  addCopywritingFieldButton.addEventListener('click', addCopywritingField);
+  closeModalButton.addEventListener('click', closeModal);
+  copyModalButton.addEventListener('click', copyFromModal);
+
+  updateCategoryDropdown(); // Initialize dropdowns
+  updateSubjectList(); // Load initial data
+  loadProducts(); // Load products for user panel
+
+  // Initially hide the product section
+  productSection.style.display = 'none';
+  newCategorySection.style.display = 'none';
+});
+
+function addCategory() {
+  const newCategory = document.getElementById('newCategory').value.trim();
+  if (!newCategory) {
+    alert('Please enter a category name.');
+    return;
+  }
+
+  const categories = JSON.parse(localStorage.getItem('categories')) || [];
+  if (categories.includes(newCategory)) {
+    alert('This category already exists!');
+    return;
+  }
+
+  categories.push(newCategory);
+  localStorage.setItem('categories', JSON.stringify(categories));
+  updateCategoryDropdown();
+  document.getElementById('newCategory').value = ''; // Clear input field
+  alert('Category added successfully!');
+
+  // Show the add product section
+  document.getElementById('productSection').style.display = 'block';
+}
+
+function updateCategoryDropdown() {
+  const categories = JSON.parse(localStorage.getItem('categories')) || [];
+  const dropdowns = document.querySelectorAll('#productCategory, #categoryFilter, #categoryDropdown');
+  dropdowns.forEach(dropdown => {
+    dropdown.innerHTML = '<option value="">Select Category</option>';
+    categories.forEach(category => {
+      dropdown.innerHTML += `<option value="${category}">${category}</option>`;
+    });
+  });
+}
+
+function addProduct() {
+  const productName = document.getElementById('productName').value.trim();
+  const productUrl = document.getElementById('productUrl').value.trim();
+  const productCategory = document.getElementById('productCategory').value;
+  const copywritings = Array.from(document.querySelectorAll('.copywriting')).map(field => field.value.trim());
+
+  if (!productName || !productUrl || !productCategory || copywritings.some(copywriting => !copywriting)) {
+    alert('Please fill all fields.');
+    return;
+  }
+
+  const products = JSON.parse(localStorage.getItem('products')) || [];
+  products.push({
+    name: productName,
+    url: productUrl,
+    category: productCategory,
+    copywritings
+  });
+  localStorage.setItem('products', JSON.stringify(products));
+  alert('Product added successfully!');
+
+  // Clear input fields
+  document.getElementById('productName').value = '';
+  document.getElementById('productUrl').value = '';
+  document.getElementById('productCategory').value = 'Select Category';
+  document.querySelectorAll('.copywriting').forEach(field => field.remove());
+
+  updateSubjectList();
+  loadProducts();
+}
+
+function addCopywritingField() {
+  const copywritingFields = document.getElementById('copywritingFields');
+  const copywritingCount = copywritingFields.children.length;
+
+  if (copywritingCount >= 10) {
+    alert('You can add up to 10 copywriting variations only.');
+    return;
+  }
+
+  const newField = document.createElement('textarea');
+  newField.classList.add('copywriting', 'w-full', 'p-3', 'bg-gray-700', 'text-gray-200', 'border', 'border-gray-600', 'rounded', 'focus:outline-none', 'focus:border-blue-500', 'mb-2');
+  newField.placeholder = `Enter copywriting variation ${copywritingCount + 1}`;
+  copywritingFields.appendChild(newField);
+}
+
+function updateSubjectList() {
+  const categoryFilter = document.getElementById('categoryFilter').value;
+  const products = JSON.parse(localStorage.getItem('products')) || [];
+  const subjectList = document.getElementById('subjectList');
+  subjectList.innerHTML = '';
+
+  products.filter(product => !categoryFilter || product.category === categoryFilter).forEach((product, index) => {
+    const listItem = document.createElement('li');
+    listItem.className = 'p-2 bg-gray-700 border border-gray-600 rounded cursor-pointer hover:bg-gray-600 transition';
+    listItem.innerHTML = `<strong>${product.name}</strong> (${product.category}) - <a href="${product.url}" target="_blank" class="text-blue-400 underline">View Product</a> <button onclick="editProduct(${index})" class="ml-2 bg-blue-500 text-white p-1 rounded">Edit</button>`;
+    subjectList.appendChild(listItem);
+  });
+}
+
+function editProduct(index) {
+  const products = JSON.parse(localStorage.getItem('products')) || [];
+  const product = products[index];
+
+  // Populate the fields with the product details
+  document.getElementById('productName').value = product.name;
+  document.getElementById('productUrl').value = product.url;
+  document.getElementById('productCategory').value = product.category;
+  document.querySelectorAll('.copywriting').forEach(field => field.remove());
+
+  const copywritingFields = document.getElementById('copywritingFields');
+  product.copywritings.forEach((copywriting, i) => {
+    const newField = document.createElement('textarea');
+    newField.classList.add('copywriting', 'w-full', 'p-3', 'bg-gray-700', 'text-gray-200', 'border', 'border-gray-600', 'rounded', 'focus:outline-none', 'focus:border-blue-500', 'mb-2');
+    newField.placeholder = `Enter copywriting variation ${i + 1}`;
+    newField.value = copywriting;
+    copywritingFields.appendChild(newField);
+  });
+
+  // Remove the product from the list to update it later
+  products.splice(index, 1);
+  localStorage.setItem('products', JSON.stringify(products));
+
+  // Show the product section
+  document.getElementById('productSection').style.display = 'block';
+}
+
+function loadProducts() {
+  const categoryDropdown = document.getElementById('categoryDropdown');
+  const copywritingGrid = document.getElementById('copywritingGrid');
+  const categoryFilter = categoryDropdown.value;
+  const products = JSON.parse(localStorage.getItem('products')) || [];
+  copywritingGrid.innerHTML = '';
+
+  products.filter(product => !categoryFilter || product.category === categoryFilter).forEach(product => {
+    const card = document.createElement('div');
+    card.classList.add('copy-card', 'p-4', 'bg-gray-700', 'border', 'border-gray-600', 'rounded', 'relative', 'transition', 'transform', 'hover:scale-105');
+
+    const shortCopywriting = product.copywritings.join('<br>').split('<br>').slice(0, 5).join('<br>');
+    const fullCopywriting = product.copywritings.join('<br>');
+
+    const content = `
+          <h3 class="text-lg font-bold text-blue-400">${product.name}</h3>
+          <h4 class="text-md font-semibold text-gray-300">${product.category}</h4>
+          <a href="${product.url}" target="_blank" class="text-blue-400 underline mb-2">View Product</a>
+          <p class="text-gray-300">${shortCopywriting}${fullCopywriting.length > shortCopywriting.length ? '...' : ''}</p>
+          ${fullCopywriting.length > shortCopywriting.length ? `<button onclick="showModal('${fullCopywriting}')" class="text-blue-400 underline mt-2">See More</button>` : ''}
+          <button onclick="copyFullText('${fullCopywriting}')" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-400 transition mt-2">Copy</button>
+          <div class="copied-notice absolute top-2 right-2 bg-green-500 text-white p-1 rounded opacity-0 transition-opacity duration-300">Copied to clipboard</div>
+      `;
+    card.innerHTML = content;
+    copywritingGrid.appendChild(card);
+  });
+}
+
+function showModal(copyText) {
+  const modal = document.getElementById('copywritingModal');
+  const modalContent = document.getElementById('modalContent');
+
+  modalContent.innerHTML = copyText;
+  modal.classList.remove('hidden');
+}
+
+function closeModal() {
+  const modal = document.getElementById('copywritingModal');
+  modal.classList.add('hidden');
+}
+
+function copyFromModal() {
+  const modalContent = document.getElementById('modalContent').innerHTML;
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = modalContent.replace(/<br>/g, '\n');
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+
+  const copiedMessage = document.getElementById('copiedMessage');
+  copiedMessage.classList.remove('hidden');
+  setTimeout(() => {
+    copiedMessage.classList.add('hidden');
+    closeModal();
+  }, 2000);
+}
+
+function copyFullText(copyText) {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = copyText.replace(/<br>/g, '\n');
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+
+  const notice = document.createElement('div');
+  notice.textContent = 'Copied to clipboard';
+  notice.style.position = 'fixed';
+  notice.style.left = '50%';
+  notice.style.top = '50%';
+  notice.style.transform = 'translate(-50%, -50%)';
+  notice.style.padding = '10px';
+  notice.style.background = 'green';
+  notice.style.color = 'white';
+  notice.style.zIndex = '1000';
+  notice.style.borderRadius = '5px';
+  document.body.appendChild(notice);
+
+  setTimeout(() => {
+    document.body.removeChild(notice);
+  }, 2000);
+}
+
+function filterByCategoryAdmin() {
+  updateSubjectList();
+}
+
+function filterByCategoryUser() {
+  loadProducts();
+}

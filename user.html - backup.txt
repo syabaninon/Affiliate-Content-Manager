@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Copywriting Display</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen">
+  <div class="container mx-auto p-6 bg-gray-800 rounded-lg shadow-lg max-w-4xl w-full">
+    <h1 class="text-3xl font-bold text-center mb-6">Copywriting Display</h1>
+    <select id="categoryDropdown"
+      class="w-full p-3 bg-gray-700 text-gray-200 border border-gray-600 rounded focus:outline-none focus:border-blue-500 mb-4">
+      <option value="">All Categories</option>
+    </select>
+    <div id="copywritingGrid" class="grid grid-cols-1 gap-4"></div>
+  </div>
+
+  <!-- Modal -->
+  <div id="copywritingModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
+      <button id="closeModalButton" class="absolute top-2 right-2 text-gray-400 hover:text-gray-200">&times;</button>
+      <div id="modalContent" class="text-gray-300"></div>
+      <button id="copyModalButton"
+        class="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-500 transition mt-4">Copy</button>
+      <div id="copiedMessage" class="text-center text-green-500 mt-2 hidden">Copied to clipboard</div>
+    </div>
+  </div>
+
+  <script src="scripts.js"></script>
+</body>
+
+</html>
